@@ -78,8 +78,6 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # GitLab
-./gitlab/config
-./gitlab/data
-./gitlab/logs
-
-
+gitlab/config
+gitlab/data
+gitlab/logs
