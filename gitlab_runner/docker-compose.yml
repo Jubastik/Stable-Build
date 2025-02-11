@@ -1,0 +1,29 @@
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:${VERSION}
+    container_name: gitlab-runner
+    restart: always
+    environment:
+      TZ: ${TZ}
+      CI_SERVER_URL: ${CI_SERVER_URL}
+      REGISTRATION_TOKEN: ${REGISTRATION_TOKEN}
+      RUNNER_NAME: ${RUNNER_NAME}
+      RUNNER_TAG_LIST: ${RUNNER_TAG_LIST}
+      RUNNER_EXECUTOR: ${RUNNER_EXECUTOR}
+      DOCKER_IMAGE: ${DOCKER_IMAGE}
+    volumes:
+      - ./config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        gitlab-runner register --non-interactive --url ${CI_SERVER_URL} --registration-token ${REGISTRATION_TOKEN} --executor ${RUNNER_EXECUTOR} --docker-image ${DOCKER_IMAGE} --description ${RUNNER_NAME} --tag-list ${TAG_LIST} --run-untagged --locked=false && \
+        gitlab-runner run
+    networks:
+      - gitlab_build
+
+
+networks:
+  gitlab_build:
+    external: true

@@ -81,3 +81,6 @@ fabric.properties
 gitlab/config
 gitlab/data
 gitlab/logs
+
+# GitLab Runner
+gitlab_runner/config/
