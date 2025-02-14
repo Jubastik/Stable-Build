@@ -17,15 +17,9 @@ services:
       - ./logs:/var/log/gitlab
       - ./data:/var/opt/gitlab
     shm_size: '256m'
-    networks:
-      - build
     healthcheck:
       disable: ${HEALTHCHECK_DISABLE}
       test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 30s
       timeout: 10s
       retries: 3
-
-networks:
-  build:
-    driver: bridge
