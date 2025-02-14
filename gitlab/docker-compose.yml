@@ -7,7 +7,7 @@ services:
     environment:
       TZ: ${TZ}
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://${HOSTNAME}'
+        external_url 'http://${HOSTNAME}:${HTTP_PORT}'
         gitlab_rails['gitlab_shell_ssh_port'] = ${SSH_PORT}
     ports:
       - "${HTTP_PORT}:80"
