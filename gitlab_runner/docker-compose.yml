@@ -3,6 +3,7 @@ services:
     image: gitlab/gitlab-runner:${VERSION}
     container_name: gitlab-runner
     restart: always
+    privileged: true
     environment:
       TZ: ${TZ}
     volumes:
