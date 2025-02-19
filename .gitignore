@@ -87,3 +87,7 @@ gitlab/logs
 
 # GitLab Runner
 gitlab_runner/config/
+
+# Nexus
+nexus/data
+
