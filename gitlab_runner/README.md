@@ -9,3 +9,12 @@ sudo gitlab-runner register -n \
   --docker-image "docker:27.5.1" \
   --docker-privileged
   ```
+
+# Настройка /etc/docker/daemon.json
+
+ip и порт Docker Registry
+``` bash
+{
+  "insecure-registries" : ["192.168.31.132:5000", "192.168.31.132:5001"]
+}
+``` 

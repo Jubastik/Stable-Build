@@ -2,7 +2,7 @@ services:
   gitlab:
     image: gitlab/gitlab-ce:${VERSION}
     container_name: gitlab
-    restart: always
+    restart: unless-stopped
     hostname: ${HOSTNAME}
     environment:
       TZ: ${TZ}
