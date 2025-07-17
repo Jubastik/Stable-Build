@@ -1,0 +1,10 @@
+---
+- name: Deploy Common Configuration
+  hosts: all
+  roles:
+    - role: common
+
+- name: Deploy Docker
+  hosts: gitlab, nexus, gitlab_runners
+  roles:
+    - role: geerlingguy.docker

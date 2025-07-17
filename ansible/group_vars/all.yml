@@ -1,0 +1,6 @@
+# Docker configuration (for geerlingguy.docker role)
+docker_add_repo: true
+docker_install_compose: true
+docker_compose_version: "v2.37.3"
+docker_users:
+  - "{{ ansible_user }}"
