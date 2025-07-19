@@ -17,3 +17,13 @@ blob_limit_docker_hosted: 3145728001 # 3000Mb
 blob_limit_docker_proxy: 1145728001 # 1000Mb
 blob_limit_golang_proxy: 1145728001 # 1000Mb
 
+# GitLab main configuration
+# WARNING! The password MAST be complex. Otherwise, the root user will not be created.
+# https://docs.gitlab.com/user/profile/user_passwords
+gitlab_root_password: "85xqmwnwtibswd" # CHANGE!!!
+
+gitlab_http_port: "80"
+gitlab_ssh_port: "2222"
+
+gitlab_timezone: "Europe/Moscow"
+

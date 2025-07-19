@@ -16,3 +16,11 @@
      - cloudkrafter.nexus
   roles:
     - role: nexus
+
+- name: Install GitLab
+  hosts: gitlab
+  become: true
+  roles:
+    - role: gitlab
+  tags:
+    - always
