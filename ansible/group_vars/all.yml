@@ -4,3 +4,16 @@ docker_install_compose: true
 docker_compose_version: "v2.37.3"
 docker_users:
   - "{{ ansible_user }}"
+
+# Nexus main configuration
+nexus_admin_password: "nexustop" # CHANGE!!!
+
+nexus_http_port: "8081" # Port for web panel
+nexus_proxy_port: "5000"  # Port for Docker proxy
+nexus_hosted_port: "5001" # Port for Docker repository
+nexus_goproxy_port: "5002" # Port for Go proxy
+
+blob_limit_docker_hosted: 3145728001 # 3000Mb
+blob_limit_docker_proxy: 1145728001 # 1000Mb
+blob_limit_golang_proxy: 1145728001 # 1000Mb
+
