@@ -59,4 +59,26 @@ nexus_repos_go_proxy:
     storage:
       blobStoreName: golang-proxy
       strictContentTypeValidation: true
-    remote_url: 'https://golang.org/pkg/'
+    remote_url: 'https://proxy.golang.org/'
+
+
+nexus_roles:
+  - name: "nx-golang"
+    id: "nx-golang"
+    description: "Golang Role"
+    privileges:
+      - "nx-repository-view-go-go-proxy-read"
+      - "nx-repository-view-go-go-proxy-browse"
+      - "nx-search-read"
+    roles: []
+
+
+nexus_local_users:
+  - username: "anonymous"
+    first_name: "Anonymous"
+    last_name: "User"
+    email: "anonymous@example.org"
+    roles:
+      - nx-golang
+
+nexus_anonymous_access: true
