@@ -1,5 +1,5 @@
 ---
-gitlab_version: "latest"
+gitlab_version: "18.3.1-ce.0"
 gitlab_hostname: "{{ ansible_host }}"
 
 gitlab_config_path: "/srv/gitlab/config"

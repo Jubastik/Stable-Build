@@ -1,0 +1,25 @@
+---
+- name: Install GitLab Runner using role
+  import_role:
+    name: riemers.gitlab-runner
+
+- name: Config /etc/docker/daemon.json
+  template:
+    src: "daemon.json.j2"
+    dest: "/etc/docker/daemon.json"
+    mode: "0644"
+  notify: restart docker
+
+- name: Log into registry
+  docker_login:
+    registry_url: "{{ item.url }}"
+    username: "{{ item.username }}"
+    password: "{{ item.password }}"
+  loop:
+    - url: "{{ hostvars['nexus-server'].ansible_default_ipv4.address }}:{{ nexus_proxy_port }}"
+      username: "admin"
+      password: "{{ nexus_admin_password }}"
+    - url: "{{ hostvars['nexus-server'].ansible_default_ipv4.address }}:{{ nexus_hosted_port }}"
+      username: "admin"
+      password: "{{ nexus_admin_password }}"
+  no_log: true

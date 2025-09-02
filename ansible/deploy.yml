@@ -24,3 +24,11 @@
     - role: gitlab
   tags:
     - always
+
+- name: Install GitLab Runners
+  hosts: gitlab_runners
+  become: true
+  roles:
+    - role: gitlab_runner
+  tags:
+    - always

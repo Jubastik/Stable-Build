@@ -27,3 +27,14 @@ gitlab_ssh_port: "2222"
 
 gitlab_timezone: "Europe/Moscow"
 
+# GitLab Runner configuration
+gitlab_runner_runners:
+  - name: "Example Docker GitLab Runner"
+    token: "glrt-G2wve_dKQB2ZoAnMZWXHym86MQp0OjEKdToxCw.01.12154o2w4" # CHANGE!!!
+    executor: docker
+    docker_image: "alpine"
+    tags:
+      - python
+    docker_volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/cache"
