@@ -28,7 +28,10 @@
 - name: Install GitLab Runners
   hosts: gitlab_runners
   become: true
-  roles:
-    - role: gitlab_runner
+  tasks:
+    - name: Install GitLab Runner role
+      include_role:
+        name: gitlab_runner
+      when: install_gitlab_runners | bool
   tags:
     - always
