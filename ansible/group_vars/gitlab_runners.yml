@@ -1,2 +1,0 @@
-gitlab_runner_coordinator_url: "http://{{ hostvars['gitlab-server'].ansible_default_ipv4.address }}:{{ gitlab_http_port }}"
-gitlab_runner_registration_token_type: "authentication-token"

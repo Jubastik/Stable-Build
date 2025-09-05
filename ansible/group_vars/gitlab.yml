@@ -1,9 +1,0 @@
----
-gitlab_version: "18.3.1-ce.0"
-gitlab_hostname: "{{ ansible_host }}"
-
-gitlab_config_path: "/srv/gitlab/config"
-gitlab_logs_path: "/srv/gitlab/logs"
-gitlab_data_path: "/srv/gitlab/data"
-
-gitlab_install_path: "/opt/gitlab"
