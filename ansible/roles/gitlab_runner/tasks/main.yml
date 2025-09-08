@@ -10,6 +10,9 @@
     mode: "0644"
   notify: restart docker
 
+- name: Force handlers
+  meta: flush_handlers
+
 - name: Log into registry
   docker_login:
     registry_url: "{{ item.url }}"

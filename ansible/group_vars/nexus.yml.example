@@ -80,5 +80,3 @@ nexus_local_users:
     email: "anonymous@example.org"
     roles:
       - nx-golang
-
-nexus_anonymous_access: true
