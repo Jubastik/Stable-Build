@@ -1,0 +1,77 @@
+---
+- name: Create Nexus data directory
+  file:
+    path: "{{ nexus_data_path }}"
+    state: directory
+    owner: 200 # UID 'nexus' in container
+    group: 200 # GID 'nexus' in container
+    mode: '0755'
+
+- name: Create Nexus installation directory
+  file:
+    path: "{{ nexus_install_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Template docker-compose file for Nexus
+  template:
+    src: nexus-docker-compose.yml.j2
+    dest: "{{ nexus_install_path }}/docker-compose.yml"
+    mode: '0644'
+
+- name: Start Nexus container
+  community.docker.docker_compose_v2:
+    project_src: "{{ nexus_install_path }}"
+    state: present
+
+- name: Start Nexus container
+  community.docker.docker_compose_v2:
+    project_src: "{{ nexus_install_path }}"
+    state: present
+
+- name: Wait for Nexus to become available
+  uri:
+    url: "http://localhost:{{ nexus_http_port }}"
+    status_code: 200
+  register: nexus_status
+  until: nexus_status.status == 200
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Check if initial admin password file exists
+  stat:
+    path: "{{ nexus_data_path }}/admin.password"
+  register: password_file_stat
+
+- name: Get initial admin password
+  slurp:
+    src: "{{ nexus_data_path }}/admin.password"
+  register: initial_admin_password_content
+  when: password_file_stat.stat.exists
+
+- name: Set initial admin password as a fact
+  set_fact:
+    nexus_initial_admin_password: "{{ initial_admin_password_content['content'] | b64decode }}"
+    cacheable: no
+  when: password_file_stat.stat.exists
+
+- name: Change Nexus admin password
+  uri:
+    url: "http://localhost:{{ nexus_http_port }}/service/rest/v1/security/users/admin/change-password"
+    method: PUT
+    user: admin
+    password: "{{ nexus_initial_admin_password }}"
+    force_basic_auth: yes
+    body: "{{ nexus_admin_password }}"
+    body_format: raw
+    headers:
+      Content-Type: "text/plain"
+    status_code: 204
+  when: password_file_stat.stat.exists
+
+- name: Remove initial admin password file after changing password
+  file:
+    path: "{{ nexus_data_path }}/admin.password"
+    state: absent
+  when: password_file_stat.stat.exists

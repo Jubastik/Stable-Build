@@ -4,39 +4,13 @@ stages:
 
 variables:
   # Настройки
-  REGISTRY_URL: "192.168.31.132:5001"
-  PROXY_REGISTRY: "192.168.31.132:5000"
+  REGISTRY_URL: "192.168.31.136:5001"
+  PROXY_REGISTRY: "192.168.31.136:5000"
   DOCKER_IMAGE: "example-go-app"
   DOCKERFILE: "Dockerfile.multistage"
 
-  # Безопасные переменные (должны быть заданы в Settings -> CI/CD -> Variables)
-  CI_REGISTRY_USER: $CI_REGISTRY_USER
-  CI_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
-
-  # Аунтификация в registry для использования в CI/CD
-  DOCKER_AUTH_CONFIG: $DOCKER_AUTH_CONFIG
-
   # Прокси для GO
-  GOPROXY: "http://192.168.31.132/repository/golang-cache"
-
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-
-
-
-image: $PROXY_REGISTRY/docker:27.5.1
-services:
-  - name: $PROXY_REGISTRY/docker:27.5.1-dind
-    alias: docker
-    command:
-
-      [
-        "--insecure-registry", "192.168.31.132:5000",
-
-        "--insecure-registry", "192.168.31.132:5001",
-
-        "--registry-mirror", "http://192.168.31.132:5000"
-      ]
+  GOPROXY: "http://192.168.31.136:8081/repository/go-proxy/"
 
 test:
   stage: test
@@ -47,9 +21,11 @@ test:
 
 build:
   stage: build
+  image: $PROXY_REGISTRY/docker:27.5.1
 
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $REGISTRY_URL
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $PROXY_REGISTRY
 
   script:
     - docker build --build-arg GOPROXY=$GOPROXY --pull --rm -f $DOCKERFILE -t $REGISTRY_URL/$DOCKER_IMAGE:latest .

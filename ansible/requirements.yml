@@ -1,0 +1,8 @@
+roles:
+  - name: geerlingguy.docker
+    version: 7.4.7
+  - name: riemers.gitlab-runner
+    version: v2.0.12
+collections:
+  - name: cloudkrafter.nexus
+    version: 1.23.6

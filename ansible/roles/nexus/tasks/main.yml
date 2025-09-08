@@ -1,0 +1,9 @@
+---
+- name: Include nexus install tasks
+  import_tasks: install.yml
+  tags:
+    - always
+
+- name: Nexus config tasks
+  import_role:
+      name: cloudkrafter.nexus.config_api

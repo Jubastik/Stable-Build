@@ -1,0 +1,9 @@
+{
+  "insecure-registries": [
+    "{{ hostvars['nexus-server'].ansible_default_ipv4.address }}:{{ nexus_proxy_port }}",
+    "{{ hostvars['nexus-server'].ansible_default_ipv4.address }}:{{ nexus_hosted_port }}"
+  ],
+  "registry-mirrors": [
+    "http://{{ hostvars['nexus-server'].ansible_default_ipv4.address }}:{{ nexus_proxy_port }}"
+  ]
+}

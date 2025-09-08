@@ -91,3 +91,12 @@ gitlab_runner/config/
 # Nexus
 nexus/data
 
+# Ansible
+ansible/group_vars/nexus.yml
+
+ansible/group_vars/gitlab_runners.yml
+
+ansible/group_vars/gitlab.yml
+
+ansible/group_vars/all.yml
+ansible/inventory

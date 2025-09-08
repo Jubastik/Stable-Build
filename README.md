@@ -1,14 +1,16 @@
-# Автономная CI/CD инфраструктура с GitLab, Nexus и Docker
+# Автономная CI/CD инфраструктура с GitLab, Nexus и Docker. Автоматизация через Ansible
 
-Решение для изолированной сборки Docker-образов с кэшированием зависимостей в условиях ограниченного доступа к интернету.
+Решение для изолированной сборки Docker-образов с кэшированием зависимостей в условиях ограниченного доступа к
+интернету.
 
 ## 📌 Особенности
 
-- **Полная изоляция**: Возможна работа без доступа к Docker Hub и внешним репозиториям Go
-- **Кэширование артефактов**:
-  - Docker-образы через Nexus Proxy (Docker Hub mirror)
-  - Golang модули через Go Proxy
-- **Интеграция GitLab CI/CD**: Автоматизация тестирования и сборки
+* **Полная изоляция**: Возможна работа без доступа к Docker Hub и внешним репозиториям Go
+* **Кэширование артефактов**:
+
+    * Docker-образы через Nexus Proxy (Docker Hub mirror)
+    * Golang-модули через Go Proxy
+* **IaC**: Использование Ansible для автоматизации развёртывания
 
 ## 🏗 Архитектура
 
@@ -16,155 +18,158 @@
 +----------------+        +-----------------+        +---------------+
 |   GitLab CE    |        |  GitLab Runner  |        |   Nexus 3     |
 | (Code Hosting) |<------>| (CI/CD Executor)|<------>| (Artifacts &  |
-|                |        |      DinD       |        |  Dependencies)|
+|                |        |                 |        |  Dependencies)|
 +----------------+        +-----------------+        +---------------+
 ```
 
 ### Компоненты
-1. **GitLab CE** (Docker контейнер):
-   - Хостинг репозиториев
-   - Управление пайплайнами
-   - Конфигурация: `http://<IP>:80`
 
-2. **GitLab Runner** (Docker контейнер):
-   - Привилегированный режим
-   - Поддержка `docker:dind`
+1. **GitLab CE** (Docker-контейнер):
 
-3. **Nexus 3** (Docker контейнер):
-   - Репозитории:
-     - `docker-hosted` (порт 5001)
-     - `docker-proxy` (порт 5000)
-     - `golang-proxy`
+    * Хостинг репозиториев
+    * Управление пайплайнами
+
+2. **GitLab Runner** (Docker-контейнер):
+
+    * Выполнение CI/CD задач
+
+3. **Nexus 3** (Docker-контейнер):
+
+    * Репозитории:
+
+        * `docker-hosted`
+        * `docker-proxy`
+        * `golang-proxy`
 
 ## ⚙️ Установка
 
 ### Предварительные требования
-- 3 ВМ с Debian 12
-- Docker и Docker Compose
-- Статические IP для каждой ВМ
-- Минимум 4 ГБ ОЗУ на каждой ВМ
 
-### 1. Развертывание GitLab
-Конфигурация Docker Compose: [gitlab/docker-compose.yml](gitlab/docker-compose.yml)
+* 3 ВМ с Debian 12
+* SSH-доступ к ВМ
+* Статические IP для каждой ВМ
+* Минимум 4 ГБ ОЗУ на каждой ВМ
+* Протестировано с Ansible 2.16+
 
-```bash
-docker compose up -d
-```
-После запуска:
-1. Настройте администратора через веб-интерфейс
-2. Подключите ранер
-
-### 2. Настройка GitLab Runner
-Конфигурация Docker Compose: [runner/docker-compose.yml](gitlab_runner/docker-compose.yml)
+### 1. Клонируйте репозиторий
 
 ```bash
-
-Важные настройки:
-```json
-// /etc/docker/daemon.json
-{
-  "insecure-registries": ["<nexus_ip>:5000", "<nexus_ip>:5001"]
-}
+git clone git@github.com:Jubastik/Stable-Build.git
+cd Stable-Build/ansible
 ```
 
-### 3. Установка Nexus
-Конфигурация Docker Compose: [nexus/docker-compose.yml](nexus/docker-compose.yml)
+### 2. Создайте inventory-файл на основе примера
 
 ```bash
-
-После запуска:
-1. Создайте репозитории:
-   - Docker (hosted, proxy и группу для них)
-   - Golang (proxy)
-2. Настройте права доступа
+cp inventory.example inventory
 ```
 
-## 🔄 Интеграция CI/CD
+### 3. Отредактируйте inventory-файл
 
-### Пример .gitlab-ci.yml
-```yaml
-stages:
-  - test
-  - build
-
-variables:
-  # Настройки
-  REGISTRY_URL: "192.168.31.132:5001"
-  PROXY_REGISTRY: "192.168.31.132:5000"
-  DOCKER_IMAGE: "example-go-app"
-  DOCKERFILE: "Dockerfile.multistage"
-
-  # Безопасные переменные (должны быть заданы в Settings -> CI/CD -> Variables)
-  CI_REGISTRY_USER: $CI_REGISTRY_USER
-  CI_REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
-
-  # Аунтификация в registry для использования в CI/CD
-  DOCKER_AUTH_CONFIG: $DOCKER_AUTH_CONFIG
-
-  # Прокси для GO
-  GOPROXY: "http://192.168.31.132/repository/golang-cache"
-
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-
-
-
-image: $PROXY_REGISTRY/docker:27.5.1
-services:
-  - name: $PROXY_REGISTRY/docker:27.5.1-dind
-    alias: docker
-    command:
-
-      [
-        "--insecure-registry", "192.168.31.132:5000",
-
-        "--insecure-registry", "192.168.31.132:5001",
-
-        "--registry-mirror", "http://192.168.31.132:5000"
-      ]
-
-test:
-  stage: test
-  image: $PROXY_REGISTRY/golang:1.19
-  script:
-    - go mod download
-    - go test -v -race ./...
-
-build:
-  stage: build
-
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $REGISTRY_URL
-
-  script:
-    - docker build --build-arg GOPROXY=$GOPROXY --pull --rm -f $DOCKERFILE -t $REGISTRY_URL/$DOCKER_IMAGE:latest .
-    - docker tag $REGISTRY_URL/$DOCKER_IMAGE:latest $REGISTRY_URL/$DOCKER_IMAGE:$CI_COMMIT_SHA
-
-    - echo "push в Docker"
-    - docker push $REGISTRY_URL/$DOCKER_IMAGE:latest
-    - docker push $REGISTRY_URL/$DOCKER_IMAGE:$CI_COMMIT_SHA
-
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```bash
+nano inventory
 ```
 
+### 4. Создайте и настройте файлы переменных
+
+Главные настройки расположены в `group_vars/all`
+
+```bash
+cd group_vars
+cp all.yml.example all.yml
+nano all.yml
+```
+
+Остальные файлы не содержат критических настроек:
+
+```bash
+cp nexus.yml.example nexus.yml
+nano nexus.yml
+```
+
+```bash
+cp gitlab.yml.example gitlab.yml
+nano gitlab.yml
+```
+
+```bash
+cp gitlab_runners.yml.example gitlab_runners.yml
+nano gitlab_runners.yml
+cd ..
+```
+
+### 5. Установите зависимости Ansible
+
+```bash
+ansible-galaxy install -r requirements.yml
+```
+
+### 6. Запустите плейбук
+
+```bash
+ansible-playbook deploy.yml
+```
+
+### 7. Зайдите в Nexus
+
+Необходимо принять `License Agreement` при первом входе, а также разрешить `Anonymous Access`.
+Эти настройки производятся во всплывающем окне после успешного входа.
+
+P.S. Эти параметры невозможно настроить через API, поэтому требуется ручное вмешательство.
+
+### 8. Создайте раннер в GitLab UI
+
+Для глобального раннера: перейдите в `Admin` -> `CI/CD` -> `Runners` -> `Create instance runner`.
+Скопируйте `runner authentication token`.
+
+### 9. Настройте блок `GitLab Runner configuration` в all.yml
+
+```bash
+cd group_vars
+nano all.yml
+"install_gitlab_runners: true
+gitlab_runner_runners/token: <скопированный ранее токен>"
+cd ..
+```
+
+### 10. Запустите плейбук
+
+```bash
+ansible-playbook deploy.yml
+```
 
 ## 🚀 Использование
 
-1. Запуск пайплайна:
-   ```bash
-   git push origin main
-   ```
+### Поведение по умолчанию:
 
-2. Проверка артефактов в Nexus:
-   - Docker-образы: `http://<nexus_ip>:5001`
-   - Кэш Go модулей: `http://<nexus_ip>/repository/golang-proxy`
+#### Nexus
 
-## 🛠 Тонкости настройки
-Для использования Docker Registry необходимо настроить **Insecure Registry** в Docker Daemon.
-  ```json
-  // /etc/docker/daemon.json
-  {
-    "insecure-registries": ["nexus_ip:5000", "nexus_ip:5001"]
-  }
-  ```
+* Админ-панель Nexus: `http://<NEXUS_IP>:8081`
+* docker-proxy репозиторий (прокси для Docker Hub): `http://<NEXUS_IP>:5000`
+* docker-hosted репозиторий (локальный): `http://<NEXUS_IP>:5001`
+* golang-proxy репозиторий (прокси для Go Modules): `http://<NEXUS_IP>:8081/repository/go-proxy/`
+* Анонимный пользователь имеет права только на чтение golang-proxy репозитория
+
+#### GitLab
+
+* GitLab UI: `http://<GITLAB_IP>/`
+
+#### GitLab Runner
+
+* Раннеры автоматически регистрируются в GitLab по токену
+
+#### Пример CI/CD пайплайна находится по пути `Stable-Build/app_example`
+
+#### Пример успешного прохождения первого этапа
+
+![Этап 1](images/stage_1.png)
+
+#### Пример успешного прохождения второго этапа
+
+![Этап 2](images/stage_2.png)
+
+## TODO
+
+* [ ] Добавить поддержку SSL
+* [ ] Добавить отдельного пользователя для Nexus
+* [ ] Настроить Cleanup Policy для Nexus
