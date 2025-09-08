@@ -9,6 +9,6 @@ services:
       - "{{ nexus_http_port }}:{{ nexus_http_port }}"
       - "{{ nexus_proxy_port }}:{{ nexus_proxy_port }}"
       - "{{ nexus_hosted_port }}:{{ nexus_hosted_port }}"
-      -  "{{ nexus_goproxy_port }}:{{ nexus_goproxy_port }}"
+      - "{{ nexus_goproxy_port }}:{{ nexus_goproxy_port }}"
     volumes:
       - "{{ nexus_data_path }}:/nexus-data"
